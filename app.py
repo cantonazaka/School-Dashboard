@@ -6,7 +6,7 @@ import visualizations
 from data_processing import *
 
 # Read data
-filepath = 'data/exercice_data.csv'
+filepath = r'data\exercice_data.csv'
 df = read_data(filepath)
 
 # Numerical columns (excluding 'StudentID')
@@ -22,13 +22,15 @@ app = dash.Dash(__name__)
 
 # Define the layout of the dashboard
 app.layout = html.Div([
+    html.H1("Student Prioritization Dashboard", style={'textAlign': 'center'}),
     html.Div([
+    html.P("Choose the indicator:"),
     dcc.Dropdown(
         id='y-dropdown',
         options=[{'label': col.capitalize(), 'value': col} for col in numerical_features],
         value=numerical_features[0],  # Set the default value to the first numerical column
         clearable=False,   # Disable the option to clear the dropdown
-        style={'width': '70%'}  # Adjust the width of the Dropdown
+        style={'width': '55%'}  # Adjust the width of the Dropdown
     ),
     html.Div([
         html.Label('Final Grade:', style={'margin-right': '10px'}),
@@ -51,14 +53,14 @@ app.layout = html.Div([
             dcc.Graph(id='scatter-plot')
         ]),
 
-        html.Div(id='additional-container1', style={'width': '25%', 'display': 'inline-block'}, children=[
+        html.Div(id='selectedbarplot-container', style={'width': '25%', 'display': 'inline-block'}, children=[
             # Add your additional visualization here (e.g., another dcc.Graph)
-            dcc.Graph(id='additional-plot1' )
+            dcc.Graph(id='selectedbar-plot' )
         ]),
         
-        html.Div(id='additional-container2', style={'width': '30%', 'display': 'inline-block'}, children=[
+        html.Div(id='allbarplot-container', style={'width': '30%', 'display': 'inline-block'}, children=[
             # Add your additional visualization here (e.g., another dcc.Graph)
-            dcc.Graph(id='additional-plot2')
+            dcc.Graph(id='allbar-plot')
         ]),
     ]),
 
@@ -98,7 +100,7 @@ def update_scatter_plot(y, grade_range):
 # Callback to update the table based on selected points in the scatter plot
 @app.callback(
     [Output('datatable', 'data'),
-     Output('additional-plot1', 'figure'),
+     Output('selectedbar-plot', 'figure'),
      Output('radar-plot', 'figure'),
      Output('numericalbar-plot', 'figure')],  
     [Input('scatter-plot', 'clickData'),
@@ -133,27 +135,31 @@ def update_table_and_plots(clickData, grade_range, y):
         # Plot vertical bar for the selected range 
         vertical_plot_figure = visualizations.plot_bar_comparison(other_filtered_slicer_numerical_columns_df, other_filtered_numerical_columns_df, bar_size=(600, 600))
     
-    # Update additional-plot1 with the new filtered DataFrame
+    # Update selectedbar-plot with the new filtered DataFrame
     object_columns_filtered_df = get_categorical_data(filtered_df)
-    figure1 = visualizations.plot_categorical_distribution(object_columns_filtered_df, 600, 500)
+    # Set plot title
+    title  = "Selected student(s)"
+    selected_bar_figure = visualizations.plot_categorical_distribution(object_columns_filtered_df, title,  600, 500)
     
-    return filtered_df.to_dict('records'), figure1, radar_plot_figure , vertical_plot_figure
+    return filtered_df.to_dict('records'), selected_bar_figure, radar_plot_figure , vertical_plot_figure
 
 
-# Callback to update additional-plot2 based on slicer (grade-slider) value
+# Callback to update allbar-plot based on slicer (grade-slider) value
 @app.callback(
-    Output('additional-plot2', 'figure'),
+    Output('allbar-plot', 'figure'),
     [Input('grade-slider', 'value')]
 )
-def update_additional_plot2(grade_range):
+def update_allbar_plot(grade_range):
+    # Set plot title
+    title  = "All students"
     # Filter DataFrame based on slicer (grade-slider) values
     filtered_df = df[(df['FinalGrade'] >= grade_range[0]) & (df['FinalGrade'] <= grade_range[1])]
     
     # Plot the categorical distribution for the filtered DataFrame
     object_columns_filtered_df = get_categorical_data(filtered_df)
-    fig_additional2 = visualizations.plot_categorical_distribution(object_columns_filtered_df, 600, 700)
+    all_bar_figure = visualizations.plot_categorical_distribution(object_columns_filtered_df, title ,  600, 700)
     
-    return fig_additional2
+    return all_bar_figure
 
 # Run the Dash app
 if __name__ == '__main__':

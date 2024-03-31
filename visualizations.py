@@ -39,13 +39,12 @@ def calculate_bar_data(df):
             bar_data.append(bar)
     return bar_data
 
-def plot_categorical_distribution(df, height, width):
+def plot_categorical_distribution(df, title , height, width):
     bar_data = calculate_bar_data(df)
     fig = go.Figure(data=bar_data)
     fig.update_layout(
-        title='BAR',
-        xaxis_title='Pourcentage (%)',
-        yaxis_title='Colonnes',
+        title=title,
+        xaxis_title='Percentage (%)',
         barmode='stack',
         height=height, 
         width = width
@@ -70,38 +69,37 @@ def create_radar_trace(r_values, theta_values, name):
 
 def plot_radar_comparison(df, filtered_df, radar_size=(600, 600)):
     # Calculate statistics for the original DataFrame
-    means_df, max_values_df = calculate_statistics(df)
+    means_df, _ = calculate_statistics(df)  # Ignore max values
     
     if filtered_df is not None:
         # Calculate statistics for the filtered DataFrame
-        means_filtered, max_values_filtered = calculate_statistics(filtered_df)
+        means_filtered, _ = calculate_statistics(filtered_df)  # Ignore max values
     else:
-        means_filtered, max_values_filtered = None, None
+        means_filtered = None
     
     # Get column names
     categories = df.columns.tolist()
     
     # Create radar traces for the original DataFrame
-    trace_means_df = create_radar_trace(means_df, categories, 'Mean Values (Original)')
-    trace_max_values_df = create_radar_trace(max_values_df, categories, 'Max Values (Original)')
+    trace_means_df = create_radar_trace(means_df, categories, 'Mean (All)')
     
     # Add radar traces for the filtered DataFrame if it's not None
-    traces = [trace_means_df, trace_max_values_df]
-    if means_filtered is not None and max_values_filtered is not None:
-        trace_means_filtered = create_radar_trace(means_filtered, categories, 'Mean Values (Filtered)')
-        trace_max_values_filtered = create_radar_trace(max_values_filtered, categories, 'Max Values (Filtered)')
-        traces.extend([trace_means_filtered, trace_max_values_filtered])
+    traces = [trace_means_df]
+    if means_filtered is not None:
+        trace_means_filtered = create_radar_trace(means_filtered, categories, 'Mean (Selected)')
+        traces.append(trace_means_filtered)
     
     # Create a Plotly figure
     fig = go.Figure(traces)
     
     # Update layout
-    max_value = max(max(max_values_df), max(max_values_filtered)) if max_values_filtered is not None else max(max_values_df)
+    max_mean_value = max(max(means_df), max(means_filtered)) if means_filtered is not None else max(means_df)
     fig.update_layout(
+        title='Comparison of Mean Values (Radar)', 
         polar=dict(
             radialaxis=dict(
                 visible=True,
-                range=[0, max_value]  # Adjust the range based on the maximum values
+                range=[0, max_mean_value]  # Adjust the range based on the maximum mean values
             )),
         showlegend=True,
         width=radar_size[0],
@@ -110,41 +108,42 @@ def plot_radar_comparison(df, filtered_df, radar_size=(600, 600)):
 
     return fig
 
+
 def plot_bar_comparison(df, filtered_df, bar_size=(600, 600)):
     # Calculate statistics for the original DataFrame
-    means_df, max_values_df = calculate_statistics(df)
+    means_df, _ = calculate_statistics(df)  # Ignore max values
     
     if filtered_df is not None:
         # Calculate statistics for the filtered DataFrame
-        means_filtered, max_values_filtered = calculate_statistics(filtered_df)
+        means_filtered, _ = calculate_statistics(filtered_df)  # Ignore max values
     else:
-        means_filtered = max_values_filtered = None
+        means_filtered = None
     
     # Get column names
     categories = df.columns.tolist()
     
     # Create bar traces for the original DataFrame
-    trace_means_df = go.Bar(x=categories, y=means_df, name='Mean Values (Original)')
-    trace_max_values_df = go.Bar(x=categories, y=max_values_df, name='Max Values (Original)')
+    trace_means_df = go.Bar(x=categories, y=means_df, name='Mean (All)')
     
     # Add bar traces for the filtered DataFrame if it's not None
-    traces = [trace_means_df, trace_max_values_df]
-    if means_filtered is not None and max_values_filtered is not None:
-        trace_means_filtered = go.Bar(x=categories, y=means_filtered, name='Mean Values (Filtered)')
-        trace_max_values_filtered = go.Bar(x=categories, y=max_values_filtered, name='Max Values (Filtered)')
-        traces.extend([trace_means_filtered, trace_max_values_filtered])
+    traces = [trace_means_df]
+    if means_filtered is not None:
+        trace_means_filtered = go.Bar(x=categories, y=means_filtered, name='Mean (Selected)')
+        traces.append(trace_means_filtered)
     
     # Create a Plotly figure
     fig = go.Figure(data=traces)
     
     # Update layout
-    # max_value = max(max(max_values_df), max(max_values_filtered)) if max_values_filtered is not None else max(max_values_df)
+    max_mean_value = max(means_df) if means_filtered is None else max(max(means_df), max(means_filtered))
     fig.update_layout(
+        title='Comparison of Mean Values (Bar)',
         barmode='group',  # Group bars together
         yaxis=dict(title='Values'),  # Add title to y-axis
         showlegend=True,
         width=bar_size[0],
-        height=bar_size[1]
+        height=bar_size[1],
+        yaxis_range=[0, max_mean_value * 1.2]  # Adjust the y-axis range to accommodate the maximum mean value
     )
 
     return fig
