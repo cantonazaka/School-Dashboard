@@ -1,9 +1,14 @@
-#Using python
+# Use the appropriate base image for your Python application
 FROM python:3.12.2
-# Using Layered approach for the installation of requirements
-COPY requirements.txt ./requirements.txt
-RUN pip install -r requirements.txt
-#Copy files to your container
-COPY . ./
-#Running your APP and doing some PORT Forwarding
-CMD gunicorn -b 0.0.0.0:80 app:server
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy all files from the local directory into the container
+COPY . .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Default command to run your application when the container starts
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:server"]

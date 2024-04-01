@@ -6,7 +6,7 @@ import visualizations
 from data_processing import *
 
 # Read data
-filepath = r'data\exercice_data.csv'
+filepath = r'exercice_data.csv'
 df = read_data(filepath)
 
 # Numerical columns (excluding 'StudentID')
@@ -19,6 +19,7 @@ object_columns_df = get_categorical_data(df)
 
 # Define the Dash app
 app = dash.Dash(__name__)
+server = app.server
 
 # Define the layout of the dashboard
 app.layout = html.Div([
