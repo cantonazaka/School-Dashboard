@@ -163,4 +163,5 @@ def update_allbar_plot(grade_range):
 
 # Run the Dash app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(port=8080,debug=False)
+
