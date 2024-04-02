@@ -77,8 +77,8 @@ def plot_radar_comparison(df, filtered_df, radar_size=(600, 600)):
     else:
         means_filtered = None
     
-    # Get column names
-    categories = df.columns.tolist()
+    # Get column names and capitalize them
+    categories = [category.capitalize() for category in df.columns.tolist()]
     
     # Create radar traces for the original DataFrame
     trace_means_df = create_radar_trace(means_df, categories, 'Mean (All)')
@@ -119,8 +119,8 @@ def plot_bar_comparison(df, filtered_df, bar_size=(600, 600)):
     else:
         means_filtered = None
     
-    # Get column names
-    categories = df.columns.tolist()
+    # Get column names and capitalize them
+    categories = [category.capitalize() for category in df.columns.tolist()]
     
     # Create bar traces for the original DataFrame
     trace_means_df = go.Bar(x=categories, y=means_df, name='Mean (All)')
